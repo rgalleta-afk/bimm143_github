@@ -1,0 +1,192 @@
+---
+title: "Class 12: RNASeq Analysis"
+author: "Rachel Galleta (A16859649)"
+format: pdf
+toc: true
+---
+
+## Background
+Today we will  analyze some RNASeq data from Himes et al. on the effects of a common steroid (dexamethasone,) on airway smooth muscle cells (ASm cells)
+
+Are staring point is the "counts" data and "metadata" that contain the  count values for each gene  in their different  experiments (i.e cell lines with or without drugs)
+
+## Data Import
+
+```{r}
+counts <- read.csv("airway_scaledcounts.csv", row.names=1)
+metadata <-read.csv("airway_metadata.csv")
+```
+
+let's have a wee peak at these objects:
+```{r}
+head(counts)
+```
+> Q. How many different experiments (columns in counts metadata) are there?
+
+```{r}
+ncol(counts)
+```
+
+
+```{r}
+nrow(metadata)
+```
+
+
+Q1. How many genes are in this dataset? 
+
+```{r}
+nrow(counts)
+```
+
+Q2. How many ‘control’ cell lines do we have? 
+
+```{r}
+sum(metadata$dex=="control")
+```
+
+## Toy differential gene expression
+
+To start our analysis lets calculate the mean for all genes in the "control" experiments.
+
+1. extract all "control" columns form the counts objets 
+2. Calculate the mean for all rows (ie, genes) of these "control"  columns 
+3-4. Do the same for "treated"
+5. Compare these "control.mean" and "treated.mean" values.
+
+```{r}
+#1.
+control.inds <- metadata$dex=="control"
+control.counts<- counts[,control.inds]
+```
+
+
+```{r}
+#2.
+control.means <- rowMeans( control.counts)
+```
+
+```{r}
+dim(control.counts)
+```
+
+
+```{r}
+#3-4.
+treated.inds <- metadata$dex=="treated"
+treated.counts<- counts[,treated.inds]
+treated.means <- rowMeans(treated.counts)
+```
+
+
+store these together for ease of book means counts
+
+```{r}
+#5.
+meancounts <- data.frame(control.means, treated.means)
+head(meancounts)
+```
+mamke a plot onf ocntorl vs treatments menad valeues for all genes
+
+```{r}
+plot(meancounts)
+```
+
+Make this a log plot
+
+```{r}
+plot(meancounts,log="xy")
+```
+
+we often talk about metrics like "log2 fold-change"
+
+```{r}
+#treated/control
+log2(10/10)
+```
+
+```{r}
+log2(10/20)
+```
+
+```{r}
+log2(20/10)
+```
+
+```{r}
+log2(40/10)
+log2(10/40)
+```
+
+lets calculate the log2 fold change four our treated over control mean counts
+
+```{r}
+meancounts$log2fc<-
+log2(meancounts$treated.means/
+  meancounts$control.means)
+```
+
+```{r}
+head(meancounts)
+```
+A common "rule of thumb" is a log2 fold change cutoff of +2 and -2 to call genes "up regulated" or "down regulated"
+
+Number of "up" genes
+```{r}
+sum(meancounts$log2fc > +2, na.rm=T)
+```
+
+number of "down" genes at -2 threshold
+
+```{r}
+sum(meancounts$log2fc <= -2, na.rm=T)
+```
+##DESeq2 analysis
+
+lest do  this analysis propertly and keep our inner starts nerd happy are the teh diferrenes we seen and no drug significnat givne the replciate experimnet
+
+```{r,message=FALSE}
+library(DESeq2)
+```
+for DESeq analysis we need thre things
+-count values ('countData')
+-metadat telling us about the columns in 'counData' ('colData')
+-design of the experiemnt (what do you want to compare)
+
+our first function formDESeq 2 will set up the input required for analysis by storing all these 3 thigs together.
+
+```{r}
+dds<- DESeqDataSetFromMatrix(countData=counts,
+                             colData= metadata,
+                             design= ~dex)
+```
+
+the main function in DESeq2  thats runs the nalysis is called DESeq()
+
+```{r}
+dds<- DESeq(dds)
+```
+
+```{r}
+res<-results(dds)
+head(res)
+```
+
+## Volcano Plot
+
+this us common summary result fomr figrue thse tyoes of expreimnts and plot the log2 fold change  vs the adjusted p-value
+
+```{r}
+plot(res$log2FoldChange,-log(res$padj))
+abline(v=c(-2,2),col="red")
+abline(h=-log(0.04),col="red")
+```
+
+
+## save our results
+
+```{r}
+write.csv(res,file="my_results.csv")
+```
+
+
