@@ -1,0 +1,239 @@
+---
+title: "Class 14: RNASeq mini project"
+author: "Rachel Galleta(A16859649)"
+format: pdf
+toc: true
+---
+## Background
+
+here we work thought a complete RNASeq analysis project .The input data comes form a knock-down experiment of a HOX gene.
+
+
+## Data import
+
+Reading the`counts` and `metadata` CSV files
+
+```{r}
+counts<- read.csv("GSE37704_featurecounts.csv", row.names = 1)
+metadata<-read.csv("GSE37704_metadata.csv")
+```
+
+check on data structure
+```{r}
+head(counts)
+```
+
+```{r}
+metadata
+```
+some book-keeping is required as there looks to be a mis match btween metadat rows and couts 
+
+```{r}
+ncol(counts)
+```
+```{r}
+nrow(metadata)
+```
+
+look like we need to get rid of the first length column of our `counts` objects.
+
+```{r}
+cleancounts <- counts[,-1]
+```
+
+```{r}
+colnames(cleancounts)
+```
+```{r}
+metadata$id
+```
+```{r}
+all(colnames(cleancounts)==metadata$id)
+```
+
+
+## Remove Zero counts genes
+
+there are lots of genes with zero counts. We can Remove these form further anaylis.
+
+```{r}
+head(cleancounts)
+```
+```{r}
+to.keep.inds <-rowSums(cleancounts)> 0
+nonzero_counts<-cleancounts[to.keep.inds,]
+```
+
+
+## DESeq Analysis
+
+load the packages
+
+```{r, message=FALSE}
+library(DESeq2)
+```
+
+Setup DESeq
+
+```{r}
+dds<- DESeqDataSetFromMatrix(
+                countData= nonzero_counts,
+                colData= metadata,
+                design= ~condition)
+
+```
+
+Run DESeq
+
+```{r}
+dds<-DESeq (dds)
+```
+
+Get results
+
+```{r}
+res<-results(dds)
+```
+
+
+## Data Visualization
+
+Volcano plot
+```{r}
+library(ggplot2)
+
+ggplot(res) +
+  aes(log2FoldChange,-log(padj))+
+  geom_point()
+
+```
+
+Add threshold lines for fold-change, p-value and color our subset of genes that make threshold cut offs in the plot.
+
+```{r}
+
+mycols<- rep("gray" , nrow(res))
+mycols[ abs(res$log2FoldChange) >2 ]<- "blue"
+mycols[res$padj>0.05] <-"gray"
+
+ggplot(res) +
+  aes(log2FoldChange,-log(padj))+
+  geom_point(col=mycols)+
+  geom_vline(xintercept= c(-2,2), col="red")+
+  geom_hline(yintercept=-log(0.05),col="red")
+
+```
+
+## Add Annotation
+
+Add gene symbols and entrez ids
+
+```{r}
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+```
+
+```{r}
+columns(org.Hs.eg.db)
+```
+
+```{r}
+res$symbol<- mapIds(x=org.Hs.eg.db,
+       keys = row.names(res),
+       keytype= "ENSEMBL",
+       column= "SYMBOL")
+
+res$entrez<- mapIds(x= org.Hs.eg.db,
+       keys = row.names(res),
+       keytype= "ENSEMBL",
+       column= "ENTREZID")
+```
+
+## Pathway Analysis
+
+Run gage analysis with KEGG 
+
+```{r, message=FALSE}
+library(gage)
+library (gageData)
+library(pathview)
+```
+
+we named vector of the change values as  input for gage
+
+```{r}
+foldchanges=res$log2FoldChange
+names(foldchanges)= res$entrez
+head(foldchanges)
+```
+
+
+```{r}
+data("kegg.sets.hs")
+keggres=gage(foldchanges,gsets = kegg.sets.hs)
+
+```
+
+```{r}
+head(keggres$less,5)
+```
+
+```{r}
+pathview(pathway.id = "hsa04110", gene.data=foldchanges)
+```
+
+
+![](hsa04110.pathview.png)
+
+```{r}
+pathview(pathway.id = "hsa03030", gene.data=foldchanges)
+```
+
+![](hsa03030.pathview.png)
+
+
+## Go terms
+same analysis but using GO genesets rather than KEGG
+```{r}
+data(go.sets.hs)
+data(go.subs.hs)
+
+# Focus on Biological Process subset of GO
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets)
+
+lapply(gobpres, head)
+```
+```{r}
+head(gobpres$less,4)
+```
+
+
+
+## Reactome
+
+Lots of folks like the reactome web interface. You can run this as an R function but lets look at the website first< https://reactome.org/
+
+The website wants a text file with one gene symbol per line of the genes you want to map to pathways.
+
+```{r}
+sig_genes <- res[res$padj <= 0.05 & !is.na(res$padj),]$symbol
+head(sig_genes)
+#res$symbol
+```
+
+and write out to a fil:
+
+```{r}
+write.table(sig_genes, file="significant_genes.txt", row.names=FALSE, col.names=FALSE, quote=FALSE)
+```
+
+
+
+## Save our results
+
+```{r}
+write.csv(res,file="myresults.csv")
+```
+
