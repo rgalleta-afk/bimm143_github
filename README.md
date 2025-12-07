@@ -6,7 +6,7 @@ Classwork for BIMM143 at UC San Diego [https://bioboot.github.io/bimm143_F25/ass
 
 -class 05 [data viz with ggplot](class%2005/class05.md)
 
--class 06 [writing R functions]()
+-class 06 [writing R functions](class%2006/class%2006%20render.md)
 
 -class 07 [machine learning 1]()
 
