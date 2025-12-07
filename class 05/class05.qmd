@@ -1,0 +1,210 @@
+---
+title: "Class 5: Data Viz with ggplot"
+author: "Rachel Galleta (PID:A16859649)"
+format: gfm
+---
+## introduction
+
+Today we are exploring the **gggplot** package and how to make nice figures in R.
+
+There are lots of ways to make figures and plot in R. These include:
+
+- so called "base" R
+- and add on packages like **ggplot2**
+
+Here is a simple "base" R plot.
+
+```{r}
+head(cars)
+```
+
+We can simply pass to to the `plot()` function.
+
+```{r}
+plot(cars)
+```
+
+> Key-point: Base R is quick but not so nice looking in some folks eyes.
+
+Let's see how we can plot this with **ggplot2**...
+
+1st I need to install this add-on package. For this we use the `install.packages()` function - **WE DO THIS IN THE CONSOLE, NOT our report**. This is a one time only deal.
+
+2nd We need to load the package with the `library()` function every time we want to use it. 
+
+
+```{r}
+library(ggplot2)
+ggplot(cars)
+```
+
+Every ggplot is composed of at least 3 layers:
+
+- **data** (i.e a data.frame with the things you want to plot),
+- aesthitics **aes()** that map the columns of data to your plot features (i.e. aesthitics)
+- geoms like **geom_point()** that srt how the plot appears
+
+```{r}
+ggplot(cars) +
+  aes(x=speed, y=dist) +
+  geom_point()
+```
+
+> Key point: For simple "canned" graphs base R is quicker but as things get more custom and elobrate then ggplot wins out...
+
+Let's add more layers to our ggplot
+
+Add a line showing the relationship between x and y
+Add a title
+Add custom axis labels "Speed (MPH)" and "Distance (ft)"
+Change the theme...
+
+```{r}
+ggplot(cars) +
+  aes(x=speed, y=dist) +
+  geom_point() +
+  geom_smooth(method="lm", se=FALSE) +
+  labs(title="Silly plot of Speed vs Stoping distance",
+       x="Speed (MPH)",
+       y="Distance (ft)") +
+  theme_bw()
+```
+
+## Going further
+
+Read some gene expresion data
+
+```{r}
+url <- "https://bioboot.github.io/bimm143_S20/class-material/up_down_expression.txt"
+genes <- read.delim(url)
+
+head(genes)
+```
+
+> Q1. How many genes are in this wee dataset?
+
+```{r}
+nrow(genes)
+```
+```{r}
+ncol(genes)
+```
+
+> Q2. How many "up" regulated genes are there?
+
+```{r}
+sum( genes$State == "up" )
+```
+
+A useful function for counting up occurances of things in a vector is the `table()` function.
+
+
+```{r}
+table( genes$State )
+```
+
+Make a v1 figure
+
+```{r}
+p <- ggplot(genes) +
+  aes(x=Condition1,
+      y=Condition2,
+      col=State) +
+  geom_point() 
+
+p
+```
+
+```{r}
+p + 
+  scale_colour_manual( values=c("blue","gray","red") ) +
+  labs(title="Expresion changes upon drug treatment",
+       x="Control (no drug)",
+       y="Treatment (with drug)") +
+  theme_bw()
+```
+
+## More Plotting 
+
+Read in the gapminder dataset
+
+```{r}
+# File location online
+url <- "https://raw.githubusercontent.com/jennybc/gapminder/master/inst/extdata/gapminder.tsv"
+
+gapminder <- read.delim(url)
+```
+
+Lets have a wee peak
+
+```{r}
+head( gapminder, 3)
+```
+
+```{r}
+tail(gapminder, 3)
+```
+
+
+> Q4. How many different country values are in this dataset?
+
+```{r}
+nrow(gapminder)
+```
+```{r}
+length( table(gapminder$country) )
+```
+> Q5. How many different continent values are in this dataset.
+
+```{r}
+unique(gapminder$continent)
+```
+```{r}
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col=continent) +
+  geom_point()
+```
+
+```{r}
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col=continent, label=country) +
+  geom_point() +
+  geom_text()
+```
+
+I can use the **ggrepl** package to make more sensible labels here.
+
+```{r}
+library(ggrepel)
+
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col=continent, label=country) +
+  geom_point() +
+  geom_text_repel()
+```
+
+I want a seperate pannel per continent
+
+```{r}
+ggplot(gapminder) +
+  aes(gdpPercap, lifeExp, col=continent, label=country) +
+  geom_point() +
+  facet_wrap(~continent)
+```
+
+## Summary
+
+The main advantages of ggplot over base R plot are:
+
+1. **Layered Grammar of Graphics**: ggplot uses a consistent, layered approach where you build plots by adding layers for data, aesthetics, and geometries. This makes complex plots easier to construct and modify, compared to base R which often requires different functions and many arguments for each plot type [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk), [[5]](https://drive.google.com/file/d/15xXaaIcCWOc_x1gJLdySWOd_sfMXTiaw/view?usp=drivesdk), [[4]](https://drive.google.com/file/d/1FDBbIi2Rlw2In9mClB7Mub8oUPgx6y8h/view?usp=drivesdk).
+
+2. **Publication-Quality Output**: ggplot produces visually appealing, publication-ready figures by default, while base R plots often need extensive tweaking to look polished [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk), [[4]](https://drive.google.com/file/d/1FDBbIi2Rlw2In9mClB7Mub8oUPgx6y8h/view?usp=drivesdk).
+
+3. **Declarative Syntax**: You specify what you want to show (data, mappings, geoms) rather than how to draw each element, making code more readable and maintainable [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk), [[5]](https://drive.google.com/file/d/15xXaaIcCWOc_x1gJLdySWOd_sfMXTiaw/view?usp=drivesdk), [[4]](https://drive.google.com/file/d/1FDBbIi2Rlw2In9mClB7Mub8oUPgx6y8h/view?usp=drivesdk).
+
+4. **Easy Customization and Extension**: Adding titles, axis labels, legends, colors, and themes is straightforward and consistent. In base R, these customizations can be fiddly and require more manual control [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk), [[5]](https://drive.google.com/file/d/15xXaaIcCWOc_x1gJLdySWOd_sfMXTiaw/view?usp=drivesdk), [[4]](https://drive.google.com/file/d/1FDBbIi2Rlw2In9mClB7Mub8oUPgx6y8h/view?usp=drivesdk).
+
+5. **Reproducibility**: ggplot code is easy to reuse and adapt for new datasets or visualizations, supporting reproducible research [[1]](https://drive.google.com/file/d/1BYSWJLROqxA1YpuDhJkzUolhiZqiOOKg/view?usp=drivesdk), [[2]](https://drive.google.com/file/d/1tFqKg9_nhVMmKYfiM1CQKDS2PmPwLh8n/view?usp=drivesdk), [[3]](https://drive.google.com/file/d/1Clw2_EJ_hY3USNwObiPnxpIQIfirxfW0/view?usp=drivesdk), [[4]](https://drive.google.com/file/d/1FDBbIi2Rlw2In9mClB7Mub8oUPgx6y8h/view?usp=drivesdk).
+
+Which of these advantages do you think is most important for your work? Why?
+
