@@ -4,7 +4,7 @@ Classwork for BIMM143 at UC San Diego [https://bioboot.github.io/bimm143_F25/ass
 
 -class 04 [R fundamentals](class%2004/class04.md)
 
--class 05 [data viz with ggplot](class%2005/class05.qmd)
+-class 05 [data viz with ggplot](class05.qmd)
 
 -class 06 [writing R functions]()
 
