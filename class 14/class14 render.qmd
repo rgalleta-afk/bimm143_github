@@ -1,7 +1,7 @@
 ---
 title: "Class 14: RNASeq mini project"
 author: "Rachel Galleta(A16859649)"
-format: pdf
+format: gfm
 toc: true
 ---
 ## Background
