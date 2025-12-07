@@ -1,0 +1,209 @@
+# class 6
+Rachel Galleta(A16859649)
+
+All functions in R have at least 3 things: -A **name**, we pick this and
+use it to call the function.
+
+-input **arguments**, there can be multiple comma separated inputs to
+the function. -the **body**, lines of R code that do the work of the
+function.
+
+our first function:
+
+``` r
+add<- function(x, y=1) {  
+  x+y
+  }
+```
+
+lets test ot function
+
+``` r
+add(c(1,2,3),y=10)
+```
+
+    [1] 11 12 13
+
+``` r
+add(10)
+```
+
+    [1] 11
+
+``` r
+add(10,10)
+```
+
+    [1] 20
+
+## A second function
+
+Lets try something more interesting.Make a sequence generation tool.
+
+the ‘sample()’ fucntion coulb be useful here.
+
+``` r
+sample(1:10,size=3)
+```
+
+    [1] 3 1 9
+
+change this to work with nucleotides A,C,G and T return 3 of them.
+
+``` r
+n<- c("A","C","G","T")
+sample(n, size=15, replace= TRUE)
+```
+
+     [1] "T" "C" "A" "A" "T" "G" "C" "A" "G" "A" "C" "A" "T" "G" "A"
+
+turn this snipet into a fuction that returns a user specified legnth dna
+seqeunce, lets call it ‘generate_dna()’
+
+``` r
+generate_dna <-function(len=10, fasta=FALSE) {
+ n<- c("A","C","G","T")
+ v<-sample(n, size=len, replace= TRUE)
+ 
+ # make a single element vector
+ s<-paste(v, collapse ="")
+ 
+ cat("well done you!")
+ if(fasta){
+   return(s)
+ }else {
+   return (v)
+ }
+}
+```
+
+``` r
+generate_dna(5)
+```
+
+    well done you!
+
+    [1] "C" "A" "G" "A" "T"
+
+``` r
+s<- generate_dna(15)
+```
+
+    well done you!
+
+``` r
+s
+```
+
+     [1] "G" "G" "G" "T" "G" "T" "G" "T" "T" "T" "T" "T" "G" "A" "A"
+
+I want the option to return a single element charater vector with my
+seqence all together like this;“GGAGTAG”
+
+``` r
+s
+```
+
+     [1] "G" "G" "G" "T" "G" "T" "G" "T" "T" "T" "T" "T" "G" "A" "A"
+
+``` r
+paste(s,collapse = "")
+```
+
+    [1] "GGGTGTGTTTTTGAA"
+
+``` r
+generate_dna(10,fasta=FALSE)
+```
+
+    well done you!
+
+     [1] "A" "G" "C" "C" "G" "C" "T" "A" "C" "G"
+
+## A more advanced example
+
+make a thrid function that generates protein sequence of a user
+specified length and format.
+
+``` r
+generate_protein<-function(size =15,  fasta=TRUE){
+  aa <- c("A","R","N","D","C","Q","E","G",
+          "H","I","L","K","M","F","P","S",
+          "T","W","Y","V")
+  seq<-sample(aa,size = size,replace=TRUE)
+  
+  if(fasta){
+    return(paste(seq, collapse=""))
+  }else{
+    return(seq)
+  }
+  }
+```
+
+try this out…
+
+``` r
+generate_protein(10,fasta=T)
+```
+
+    [1] "FQIYWWCGRR"
+
+> Q. generate random protein seqeunces between lenghts 5 and 12
+> amino-acids.
+
+``` r
+generate_protein(5)
+```
+
+    [1] "IATSY"
+
+``` r
+generate_protein(6)
+```
+
+    [1] "DIHWCF"
+
+one approach is to do this by brute force calling our function for each
+length 5 to 12.
+
+another approach is to write a ‘for c’ loop to litetire the input valued
+5 to 12.
+
+a very useful third R specific approach is to use the ‘supply()’
+function
+
+``` r
+seq_length<-6:12
+for (i in seq_length){
+  cat(">",i, "\n",sep="")
+  cat(generate_protein(i))
+  cat("\n")
+}
+```
+
+    >6
+    HCNRTY
+    >7
+    HVKDMPT
+    >8
+    YQYKQYAF
+    >9
+    KEPDTGILS
+    >10
+    KMRKKPACPK
+    >11
+    KRGGNTWYTQI
+    >12
+    IDKLDEYYRDRF
+
+``` r
+sapply(5:12,generate_protein)
+```
+
+    [1] "NVLND"        "WYTQQF"       "CAVWFPE"      "YYACHRVP"     "QLSGLWAVI"   
+    [6] "MVCEICGPNP"   "YELDACRWPAT"  "MQADVVFPQKRK"
+
+> \*\*key point writting funtion with r is doable, but not the easiest
+> thing. Starting with a working snippet of code and then using LLM tool
+> to improve and generalize your function codes is a productive
+> approach.
