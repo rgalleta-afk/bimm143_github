@@ -22,7 +22,7 @@ Classwork for BIMM143 at UC San Diego [https://bioboot.github.io/bimm143_F25/ass
 
 -Class 13: Veterans Day Holiday
 
--Class 14: [RNA-Seq mini project]()
+-Class 14: [RNA-Seq mini project](class%2014/class14%20render.md)
 
 -Class 15: [Hands-on with Git and GitHub]()
 
