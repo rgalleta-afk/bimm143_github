@@ -8,7 +8,7 @@ Classwork for BIMM143 at UC San Diego [https://bioboot.github.io/bimm143_F25/ass
 
 -class 06 [writing R functions](class%2006/class%2006%20render.md)
 
--class 07 [machine learning 1]()
+-class 07 [machine learning 1](class%2007/class07.md)
 
 -Class 08:[Breast Cancer Analysis Mini Project]()
 
